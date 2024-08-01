@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Widget Library Test</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .widget-selected {
+            border: 2px solid #007bff !important;
+        }
+        div {
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <h1>Widget Library Test</h1>
+        <div id="root" class="p-3 mb-3 border">
+            <div widget="widgets/a" class="p-3 mb-2 border">
+                <div widget="widgets/b" class="p-3 mb-2 border"></div>
+            </div>
+            <div widget="widgets/c" class="p-3 mb-2 border"></div>
+        </div>
+        <div class="btn-group mb-3" role="group">
+            <button id="init" class="btn btn-primary">Init</button>
+            <button id="destroy" class="btn btn-danger">Destroy</button>
+            <button id="done" class="btn btn-success">Done</button>
+            <button id="fail" class="btn btn-warning">Fail</button>
+        </div>
+        <div id="info" class="p-3 mb-3 border"></div>
+    </div>
+
+    <script type="module">
+        import { X } from 'http://localhost:8080/X.js';
+
+        let selectedNode = null;
+
+        function updateInfo() {
+            const root = document.getElementById('root');
+            const info = document.getElementById('info');
+            let widgetInfo = 'Widget Instances:<br><br>';
+            
+            const traverse = (node) => {
+                if (node.widgetInstance) {
+                    widgetInfo += `Node: ${node.getAttribute('widget')}<br>Instance: ${node.widgetInstance.constructor.name}<br>Status: ${node.widgetInstance.status || 'initialized'}<br><br>`;
+                }
+                node.childNodes.forEach(traverse);
+            };
+            traverse(root);
+            info.innerHTML = widgetInfo;
+        }
+
+        function selectNode(node) {
+            if (selectedNode) {
+                selectedNode.classList.remove('widget-selected');
+            }
+            selectedNode = node;
+            if (selectedNode) {
+                selectedNode.classList.add('widget-selected');
+            }
+        }
+
+        document.getElementById('root').addEventListener('click', (event) => {
+            let node = event.target;
+            while (node && node !== document.getElementById('root') && !node.hasAttribute('widget')) {
+                node = node.parentNode;
+            }
+            if (node !== document.getElementById('root')) {
+                selectNode(node);
+            } else {
+                selectNode(null);
+            }
+        });
+
+        document.getElementById('init').addEventListener('click', () => {
+            X.init(document.getElementById('root'), (error) => {
+                if (error) {
+                    console.error('Initialization failed:', error);
+                    alert(`Initialization failed: ${error.message}`);
+                } else {
+                    console.log('Initialization succeeded');
+                    updateInfo();
+                }
+            });
+        });
+
+        document.getElementById('destroy').addEventListener('click', () => {
+            if (selectedNode) {
+                X.destroy(selectedNode);
+                console.log('Destroyed selected widget');
+                updateInfo();
+            } else {
+                alert('No widget selected for destruction');
+            }
+        });
+
+        document.getElementById('done').addEventListener('click', () => {
+            if (selectedNode && selectedNode.widgetInstance) {
+                selectedNode.widgetInstance.status = 'done';
+                console.log('Marked selected widget as done');
+                updateInfo();
+            } else {
+                alert('No widget selected or widget not initialized');
+            }
+        });
+
+        document.getElementById('fail').addEventListener('click', () => {
+            if (selectedNode && selectedNode.widgetInstance) {
+                selectedNode.widgetInstance.status = 'failed';
+                console.log('Marked selected widget as failed');
+                updateInfo();
+            } else {
+                alert('No widget selected or widget not initialized');
+            }
+        });
+    </script>
+</body>
+</html>

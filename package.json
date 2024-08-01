@@ -1,0 +1,14 @@
+{
+  "name": "widgetapp",
+  "version": "1.0.0",
+  "description": "",
+  "main": "X.js",
+  "scripts": {
+    "node-test": "node node.test.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "jsdom": "^24.1.1"
+  }
+}
